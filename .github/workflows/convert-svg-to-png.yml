@@ -26,7 +26,7 @@ jobs:
 
       - name: Convert SVGs to PNGs
         run: |
-          SIZE=512
+          SIZE=256
           echo "Starting conversion..."
           
           # 遍历源文件并输出到 flags 目录
