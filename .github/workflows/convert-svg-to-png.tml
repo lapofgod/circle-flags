@@ -1,0 +1,49 @@
+name: Convert SVG to PNG (Auto on Sync)
+
+on:
+  push:
+    branches:
+      - gh-pages
+  workflow_dispatch:
+
+jobs:
+  convert-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install SVG conversion tool
+        run: sudo apt-get update && sudo apt-get install -y librsvg2-bin
+
+      - name: Prepare Output Directory
+        run: |
+          # 创建 flags 目录，确保输出结构正确
+          mkdir -p png_output/flags
+
+      - name: Convert SVGs to PNGs
+        run: |
+          SIZE=512
+          echo "Starting conversion..."
+          
+          # 遍历源文件并输出到 flags 目录
+          for file in flags/*.svg; do
+            filename=$(basename "$file" .svg)
+            rsvg-convert -w $SIZE -h $SIZE "$file" -o "png_output/flags/$filename.png"
+          done
+          
+          echo "Conversion complete."
+
+      - name: Deploy to new branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./png_output
+          publish_branch: png-build
+          force_orphan: true
+          commit_message: "Auto-generated PNG flags on sync"
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
